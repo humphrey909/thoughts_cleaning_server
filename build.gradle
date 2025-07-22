@@ -1,0 +1,71 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.dnx'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	runtimeOnly 'com.h2database:h2' // Example: H2 for development
+
+/*
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	implementation platform('software.amazon.awssdk:bom:2.17.66')
+	implementation 'software.amazon.awssdk:lexruntimev2'
+	implementation 'software.amazon.awssdk:s3'
+	implementation 'software.amazon.awssdk:polly'
+
+	implementation 'commons-fileupload:commons-fileupload:1.4'
+	implementation 'mysql:mysql-connector-java'
+	implementation 'org.apache.commons:commons-lang3:3.7'
+	implementation 'org.apache.commons:commons-text:1.4'
+
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+	implementation 'com.google.cloud:google-cloud-speech:1.24.2'
+	implementation 'com.google.api-client:google-api-client:1.30.10'
+	implementation 'net.bramp.ffmpeg:ffmpeg:0.6.2'
+
+	compileOnly 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	implementation 'org.springframework.boot:spring-boot-devtools'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.apache.poi:poi:4.1.2'
+
+
+	//인앱 결제 검증
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.6.0'
+	implementation 'com.google.apis:google-api-services-androidpublisher:v3-rev22-1.25.0'
+
+	implementation 'com.google.http-client:google-http-client-apache-v2:1.39.0'*/
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
