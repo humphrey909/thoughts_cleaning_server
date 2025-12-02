@@ -16,9 +16,9 @@ public class BodyDiagnosisService {
     /**
      * 체형 계산
      */
-    public Long calculateBodyType(BodyDiagnosisDto bodyDiagnosisDto) {
-
-    }
+//    public Long calculateBodyType(BodyDiagnosisDto bodyDiagnosisDto) {
+//
+//    }
 
 
     /**
@@ -274,11 +274,11 @@ public class BodyDiagnosisService {
      *             - val > 11 ~ 13 : 직사각형(1번이 평균 이하에서 차이나면 직선형)
      *             - val < 10 : 타원형
      * */
-    public BodyDiagnosisEnum calculateThreeAreaCombinationMan(BodyDiagnosisDto bodyDiagnosisDto) {
-
-
-
-    }
+//    public BodyDiagnosisEnum calculateThreeAreaCombinationMan(BodyDiagnosisDto bodyDiagnosisDto) {
+//
+//
+//
+//    }
 
 
 
