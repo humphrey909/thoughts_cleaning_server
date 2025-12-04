@@ -1,36 +1,52 @@
-package com.async.main.domain.body;
+package com.async.main.domain.user;
 
-import com.async.main.domain.body.dto.BodyDiagnosisDto;
-import org.springframework.http.HttpStatus;
+import com.async.main.domain.user.dto.LoginRequestDto;
+import com.async.main.domain.user.dto.TokenDto;
+import com.async.main.domain.user.dto.UserDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
-public class BodyDiagnosisController {
-    private final BodyDiagnosisService bodyDiagnosisService;
+public class UserController {
+    private final UserService userService;
 
-    public BodyDiagnosisController(BodyDiagnosisService bodyDiagnosisService) {
-        this.bodyDiagnosisService = bodyDiagnosisService;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     /**
-     * 얼굴
+     * login
      */
-    @PostMapping
-    public ResponseEntity<String> makeBodyDiagnosis(@RequestBody BodyDiagnosisDto bodyDiagnosisDto) {
-        // 클라이언트로부터 받은 데이터 확인
-//        System.out.println("Received Username: " + userDto.username());
-//        System.out.println("Received Email: " + userDto.email());
+    @PostMapping("/login")
+    public ResponseEntity<TokenDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+        TokenDto tokenDto = userService.login(loginRequestDto);
 
-        // 여기에 실제 비즈니스 로직(DB 저장 등)을 추가합니다.
-//        bodyDiagnosisService.createUser(bodyDiagnosisDto);
+        log.info("TokenDto: {}", tokenDto);
+        
+        return ResponseEntity.ok(tokenDto);
+    }
 
-        // 성공적으로 처리되었음을 알리는 응답 반환
-        return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully!");
+    /**
+     * 회원가입
+     */
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
+        userService.signup(userDto);
+        return ResponseEntity.ok("User registered successfully");
+    }
+
+    /**
+     * 회원 탈퇴
+     */
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<String> withdraw(@AuthenticationPrincipal User user) {
+        userService.withdraw(user.getUsername());
+        return ResponseEntity.ok("User withdrawn successfully");
     }
 }
 
