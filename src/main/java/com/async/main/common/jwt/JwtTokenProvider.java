@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,9 @@ public class JwtTokenProvider {
         long now = (new Date()).getTime();
 
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 86400000); // 1일
+        long accessTokenValidTime = 60 * 60 * 1000L;
+        Date accessTokenExpiresIn = new Date(now + accessTokenValidTime);
+        // Date accessTokenExpiresIn = new Date(now + 86400000); // 1일
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -50,8 +53,9 @@ public class JwtTokenProvider {
                 .compact();
 
         // Refresh Token 생성
+        long refreshTokenValidTime = 60 * 60 * 24 * 30 * 1000L;
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 86400000))
+                .setExpiration(new Date(now + refreshTokenValidTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -70,10 +74,18 @@ public class JwtTokenProvider {
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
+        
+        // 빈 문자열 처리
+        String authClaim = claims.get("auth").toString();
+        if (authClaim.trim().isEmpty()) {
+             log.warn("토큰에 권한 정보가 비어있습니다. userId: {}", claims.getSubject());
+             UserDetails principal = new User(claims.getSubject(), "", Collections.emptyList());
+             return new UsernamePasswordAuthenticationToken(principal, "", Collections.emptyList());
+        }
 
         // 클레임에서 권한 정보 가져오기
         Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get("auth").toString().split(","))
+                Arrays.stream(authClaim.split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
@@ -88,13 +100,13 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
+            log.info("Invalid JWT Token",  e.getMessage());
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            log.info("Expired JWT Token: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
+            log.info("Unsupported JWT Token",  e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
+            log.info("JWT claims string is empty.",  e.getMessage());
         }
         return false;
     }

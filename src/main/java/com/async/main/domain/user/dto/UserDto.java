@@ -7,7 +7,6 @@ public class UserDto {
     private String loginId;
     private String password;
     private String loginType;
-    private String sessionKey;
     private String fcmId;
     private String appOsType;
     private String osVersion;

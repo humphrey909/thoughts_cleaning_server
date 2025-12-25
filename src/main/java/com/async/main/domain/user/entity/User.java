@@ -20,7 +20,7 @@ public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idx;
 
     @Column(name = "login_id", unique = true, nullable = false)
     private String loginId;
@@ -30,9 +30,6 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "login_type", nullable = false)
     private String loginType;
-
-    @Column(name = "session_key", nullable = true)
-    private String sessionKey;
     
     @Column(name = "fcm_id", nullable = true)
     private String fcmId;
@@ -48,7 +45,16 @@ public class User extends BaseTimeEntity {
     private String appVersion;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "uid"))
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
+    public void updateAppInfo(String appOsType, String osVersion, String appVersion, String fcmId) {
+        this.appOsType = appOsType;
+        this.osVersion = osVersion;
+        this.appVersion = appVersion;
+        if (fcmId != null) {
+            this.fcmId = fcmId;
+        }
+    }
 }

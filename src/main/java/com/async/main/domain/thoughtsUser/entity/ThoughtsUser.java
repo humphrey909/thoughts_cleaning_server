@@ -22,8 +22,8 @@ public class ThoughtsUser extends BaseTimeEntity {
     @Column(name = "uid", nullable = false)
     private Long uid;
 
-    @Column(name = "kind_thought")
-    private String kindThought;
+    @Column(name = "kind_thought_idx")
+    private Integer kindThoughtIdx;
 
     @Column(name = "content_thought", columnDefinition = "TEXT")
     private String contentThought;
