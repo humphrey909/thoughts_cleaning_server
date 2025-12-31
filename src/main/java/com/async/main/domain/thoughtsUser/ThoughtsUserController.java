@@ -1,7 +1,11 @@
 package com.async.main.domain.thoughtsUser;
 
+import com.async.main.base.ROAny;
 import com.async.main.common.jwt.JwtTokenProvider;
+import com.async.main.domain.kindThought.entity.KindThought;
+import com.async.main.domain.kindThought.repository.KindThoughtRepository;
 import com.async.main.domain.thoughtsUser.dto.ThoughtsUserDto;
+import com.async.main.domain.thoughtsUser.entity.ThoughtsUser;
 import com.async.main.domain.user.UserRepository;
 import com.async.main.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,7 @@ public class ThoughtsUserController {
     private final ThoughtsUserService thoughtsUserService;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final KindThoughtRepository kindThoughtRepository;
 
     @PostMapping("/save")
     public ResponseEntity<?> save(
@@ -46,6 +51,20 @@ public class ThoughtsUserController {
 
         dto.setUid(user.getIdx());
 
-        return ResponseEntity.ok(thoughtsUserService.save(dto));
+        ThoughtsUser savedUser = thoughtsUserService.save(dto);
+        ROAny response = new ROAny();
+        response.put("idx", savedUser.getIdx());
+        response.put("content_thought", savedUser.getContentThought());
+        
+        if (savedUser.getKindThoughtIdx() != null) {
+            KindThought kindThought = kindThoughtRepository.findById(Long.valueOf(savedUser.getKindThoughtIdx()))
+                    .orElse(null);
+            if (kindThought != null) {
+                response.put("name", kindThought.getName());
+                response.put("detail_text", kindThought.getDetailText());
+            }
+        }
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -29,6 +29,6 @@ public class CleaningGauge extends BaseTimeEntity {
     private String componentsType;
 
     @Column(name = "clean_gauge")
-    private Double cleanGauge;
+    private Float cleanGauge;
 }
 

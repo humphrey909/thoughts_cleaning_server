@@ -71,9 +71,14 @@ public class UserController {
      * 회원 탈퇴
      */
     @DeleteMapping("/withdraw")
-    public ResponseEntity<String> withdraw(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
-        userService.withdraw(user.getUsername());
-        return ResponseEntity.ok("User withdrawn successfully");
+    public RO withdraw(@RequestHeader("Authorization") String token) {
+        String accessToken = token;
+        if (token != null && token.startsWith("Bearer ")) {
+            accessToken = token.substring(7);
+        }
+        userService.withdraw(accessToken);
+        
+        return new RO("User withdrawn successfully", ErrorMessageType.OK);
     }
 
     /**
@@ -98,8 +103,22 @@ public class UserController {
         if (isValid) {
             // 토큰이 유효하면 유저 정보 조회하여 반환
             User user = userService.getUserInfo(token);
-            json.put("idx", user.getIdx());
-            json.put("is_valid", isValid);
+            
+            // 탈퇴한 유저인지 확인
+            if (user.getDeleteTime() != null) {
+                // 탈퇴한 유저라면 리프레시 토큰 삭제 (로그아웃 처리)
+                try {
+                    userService.logout(token);
+                } catch (Exception e) {
+                    log.error("Failed to logout withdrawn user: {}", e.getMessage());
+                }
+                
+                json.put("idx", 0);
+                json.put("is_valid", false);
+            } else {
+                json.put("idx", user.getIdx());
+                json.put("is_valid", isValid);
+            }
         } else {
             json.put("idx", 0);
             json.put("is_valid", isValid);

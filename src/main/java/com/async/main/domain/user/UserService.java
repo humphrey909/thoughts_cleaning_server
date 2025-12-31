@@ -24,6 +24,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -84,12 +85,42 @@ public class UserService {
         Optional<User> userOptional = userRepository.findByLoginId(kakaoUserId);
         User user;
 
+        // 프로필 정보 추출
+        String name = "Unknown";
+        String email = "";
+
+        if (requestDto.getProfile() != null) {
+            Map<String, Object> profile = requestDto.getProfile();
+            
+            // 이메일 추출 (최상위)
+            if (profile.get("email") != null) {
+                email = String.valueOf(profile.get("email"));
+            }
+
+            // 닉네임 추출 (profile 객체 내부)
+            if (profile.containsKey("profile")) {
+                Object profileObj = profile.get("profile");
+                if (profileObj instanceof Map) {
+                    Map<String, Object> innerProfile = (Map<String, Object>) profileObj;
+                    if (innerProfile.get("nickname") != null) {
+                        name = String.valueOf(innerProfile.get("nickname"));
+                    }
+                } else if (profileObj != null) {
+                    // 혹시라도 profile이 String 형태로 올 경우 (드물지만 안전하게)
+                    // name = profileObj.toString(); 
+                    // 위 로그상 {nickname=...} 이므로 Map이 맞음
+                }
+            }
+        }
+
         if (userOptional.isEmpty()) {
             // 2. 없으면 회원가입 처리
             user = User.builder()
                     .loginId(kakaoUserId)
                     .password(passwordEncoder.encode("KAKAO_SOCIAL_LOGIN")) // 소셜 로그인은 비밀번호가 불필요하지만 DB 제약조건 때문에 더미 값 설정
                     .loginType("KAKAO")
+                    .name(name)
+                    .email(email)
                     .appOsType(requestDto.getModelName() != null ? requestDto.getModelName() : "Unknown")
                     .osVersion(requestDto.getPhoneOSVersion())
                     .roles(Collections.singletonList("U"))
@@ -97,8 +128,16 @@ public class UserService {
             userRepository.save(user);
         } else {
             user = userOptional.get();
+            
+            // 탈퇴한 사용자라면 복구 (재가입 처리)
+            if (user.getDeleteTime() != null) {
+                user.restore();
+            }
+
             // 3. 있으면 정보 업데이트 (기기 정보 등)
-            user.updateAppInfo(
+            user.updateInfo(
+                name,
+                email,
                 requestDto.getModelName() != null ? requestDto.getModelName() : "Unknown",
                 requestDto.getPhoneOSVersion(),
                 null, 
@@ -122,6 +161,9 @@ public class UserService {
             socialUserRepository.save(socialUser);
         } else {
             // 이미 존재하면 토큰 정보 업데이트
+            if (socialUser.getDeleteTime() != null) {
+                socialUser.restore();
+            }
             socialUser.updateToken(
                     requestDto.getAccessToken(),
                     accessExpires,
@@ -172,11 +214,29 @@ public class UserService {
      * 회원 탈퇴 (Soft Delete)
      */
     @Transactional
-    public void withdraw(String loginId) {
-        User user = userRepository.findByLoginId(loginId)
+    public void withdraw(String accessToken) {
+        // 1. 토큰 유효성 검증
+        if (!jwtTokenProvider.validateToken(accessToken)) {
+            throw new IllegalArgumentException("유효하지 않거나 만료된 토큰입니다.");
+        }
+
+        // 2. 토큰에서 유저 정보(PK) 추출
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+        Long userId = Long.valueOf(authentication.getName());
+
+        // 3. User 조회 및 Soft Delete
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        
-        user.delete(); // BaseTimeEntity의 delete 메서드 호출 (delete_time 설정)
+        user.delete();
+
+        // 4. SocialUser 조회 및 Soft Delete
+        List<SocialUser> socialUsers = socialUserRepository.findAllByUserId(userId);
+        for (SocialUser socialUser : socialUsers) {
+            socialUser.delete();
+        }
+
+        // 5. Refresh Token 삭제
+        tokenService.deleteRefreshToken(userId);
     }
 
     /**

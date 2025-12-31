@@ -22,7 +22,7 @@ public class CleaningGaugeController {
     private final UserRepository userRepository;
     private final ThoughtsUserRepository thoughtsUserRepository;
 
-    @PostMapping
+    @PostMapping("/save")
     public ResponseEntity<?> save(
             @RequestHeader("Authorization") String token,
             @RequestBody CleaningGaugeDto dto) {
