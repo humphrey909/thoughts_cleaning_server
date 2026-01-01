@@ -20,7 +20,7 @@ public class CleaningGauge extends BaseTimeEntity {
     private Long idx;
 
     @Column(name = "thought_idx", nullable = false)
-    private Long thoughtIdx;
+    private Integer thoughtIdx;
 
     @Column(name = "space_type")
     private String spaceType;

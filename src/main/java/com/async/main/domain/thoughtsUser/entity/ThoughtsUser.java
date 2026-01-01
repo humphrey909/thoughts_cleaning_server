@@ -17,10 +17,10 @@ public class ThoughtsUser extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idx;
+    private Integer idx;
 
     @Column(name = "uid", nullable = false)
-    private Long uid;
+    private Integer uid;
 
     @Column(name = "kind_thought_idx")
     private Integer kindThoughtIdx;

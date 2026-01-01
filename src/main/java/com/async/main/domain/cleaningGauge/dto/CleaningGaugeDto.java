@@ -17,7 +17,7 @@ public class CleaningGaugeDto {
     private Integer idx;
 
     @JsonProperty("thought_idx")
-    private Long thoughtIdx;
+    private Integer thoughtIdx;
 
     @JsonProperty("space_type")
     private String spaceType;

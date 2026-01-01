@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 public class ThoughtsUserDto {
 
     @JsonProperty("idx")
-    private Long idx;
+    private Integer idx;
 
     @JsonProperty("uid")
-    private Long uid;
+    private Integer uid;
 
     @JsonProperty("kind_thought_idx")
     private Integer kindThoughtIdx;

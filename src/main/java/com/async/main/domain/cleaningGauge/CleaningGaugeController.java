@@ -45,7 +45,7 @@ public class CleaningGaugeController {
         ThoughtsUser thoughtsUser = thoughtsUserRepository.findById(dto.getThoughtIdx())
                 .orElseThrow(() -> new IllegalArgumentException("Thought not found"));
 
-        if (!thoughtsUser.getUid().equals(user.getIdx())) {
+        if (thoughtsUser.getUid().longValue() != user.getIdx().longValue()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have permission to access this thought");
         }
         

@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ThoughtsUserService {
@@ -15,5 +17,10 @@ public class ThoughtsUserService {
     @Transactional
     public ThoughtsUser save(ThoughtsUserDto dto) {
         return thoughtsUserRepository.save(dto.toEntity());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ThoughtsUser> findAllByUid(Integer uid) {
+        return thoughtsUserRepository.findAllByUid(uid);
     }
 }

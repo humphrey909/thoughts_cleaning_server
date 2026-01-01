@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/thoughts")
@@ -49,21 +51,40 @@ public class ThoughtsUserController {
         User user = userRepository.findById(userIdx)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        dto.setUid(user.getIdx());
+        dto.setUid(user.getIdx().intValue());
 
         ThoughtsUser savedUser = thoughtsUserService.save(dto);
         ROAny response = new ROAny();
         response.put("idx", savedUser.getIdx());
         response.put("content_thought", savedUser.getContentThought());
         
-        if (savedUser.getKindThoughtIdx() != null) {
-            KindThought kindThought = kindThoughtRepository.findById(Long.valueOf(savedUser.getKindThoughtIdx()))
-                    .orElse(null);
-            if (kindThought != null) {
-                response.put("name", kindThought.getName());
-                response.put("detail_text", kindThought.getDetailText());
-            }
+        // if (savedUser.getKindThoughtIdx() != null) {
+        //     KindThought kindThought = kindThoughtRepository.findById(Long.valueOf(savedUser.getKindThoughtIdx()))
+        //             .orElse(null);
+        //     if (kindThought != null) {
+        //         response.put("name", kindThought.getName());
+        //         response.put("detail_text", kindThought.getDetailText());
+        //     }
+        // }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getList(@RequestHeader("Authorization") String token) {
+        String actualToken = token.replace("Bearer ", "");
+
+        if (!jwtTokenProvider.validateToken(actualToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
         }
+
+        Authentication auth = jwtTokenProvider.getAuthentication(actualToken);
+        Long userIdx = Long.valueOf(auth.getName());
+
+        List<ThoughtsUser> list = thoughtsUserService.findAllByUid(userIdx.intValue());
+        
+        ROAny response = new ROAny();
+        response.put("thoughts_list", list);
 
         return ResponseEntity.ok(response);
     }
